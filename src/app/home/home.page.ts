@@ -1,17 +1,22 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, InfiniteScrollCustomEvent, IonList, IonItem, IonAvatar, IonSkeletonText, IonAlert, IonLabel, IonBadge, IonInfiniteScroll, IonInfiniteScrollContent } from '@ionic/angular/standalone';
+import { Component, inject, OnInit, TrackByFunction } from '@angular/core';
+import { IonHeader, IonToolbar, IonTitle, IonContent, InfiniteScrollCustomEvent, IonList, IonItem, IonAvatar, IonSkeletonText, IonAlert, IonLabel, IonBadge, IonInfiniteScroll, IonInfiniteScrollContent, IonSearchbar } from '@ionic/angular/standalone'; // Added IonSearchbar
 import { MovieService } from '../services/movie.service';
 import { catchError, finalize } from 'rxjs';
 import { MovieResult } from '../services/interfaces';
-import { DatePipe } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { Ng2SearchPipe  } from 'ng2-search-filter';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [IonInfiniteScrollContent, IonInfiniteScroll, IonBadge, 
+  imports: [
+    IonInfiniteScrollContent,
+    IonInfiniteScroll,
+    IonBadge,
     IonLabel,
     IonAlert,
     IonSkeletonText,
@@ -21,17 +26,24 @@ import { RouterModule } from '@angular/router';
     IonHeader,
     IonToolbar,
     IonTitle,
-    IonContent, 
+    IonContent,
+    IonSearchbar, 
     DatePipe,
-    RouterModule
+    RouterModule,
+    FormsModule,
+    CommonModule, 
+    
   ],
 })
+  
 export class HomePage implements OnInit {
   private movieService = inject(MovieService);
   private currentPage = 1;
   public error = null;
   public isLoading = false;
-  public movies: MovieResult[] =[] ;
+  public movies: MovieResult[] = [];
+  public filteredMovies: MovieResult[] = [];
+  public searchTerm: string = ''; 
   public imageBaseUrl = 'https://image.tmdb.org/t/p'
   public dummyArray = new Array(5);
 
@@ -67,6 +79,7 @@ export class HomePage implements OnInit {
       next: (res) => {
         // Append the results to our movies array
         this.movies.push(...res.results);
+        this.filteredMovies = [...this.movies]; // Initialize filteredMovies
 
         // Resolve the infinite scroll promise to tell Ionic that we are done
         event?.target.complete();
@@ -83,5 +96,18 @@ export class HomePage implements OnInit {
   loadMore(event: InfiniteScrollCustomEvent) {
     this.currentPage++;
     this.loadMovies(event);
+  }
+
+  // Filter movies based on search term
+  onSearchChange() {
+    this.filterMovies();
+  }
+
+  filterMovies() {
+    // Filter the movies array to include only those whose title contains the search term
+    this.filteredMovies = this.movies.filter((movie) =>
+      // Convert each movie title to lowercase for case-insensitive comparison
+      movie.title.toLowerCase().includes(this.searchTerm.toLowerCase())
+    );
   }
 }
