@@ -14,8 +14,5 @@ export const routes: Routes = [
     path: 'details/:id',
     loadComponent: () => import('./pages/details/details.page').then( m => m.DetailsPage)
   },
-  {
-    path: 'home-defer',
-    loadComponent: () => import('./pages/home-defer/home-defer.page').then( m => m.HomeDeferPage)
-  },
+  
 ];
